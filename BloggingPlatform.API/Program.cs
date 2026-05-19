@@ -1,4 +1,5 @@
 using System.Text;
+using BloggingPlatform.API.Middleware;
 using BloggingPlatform.Application.Interfaces;
 using BloggingPlatform.Application.Services;
 using BloggingPlatform.Infrastructure.DependencyInjection;
@@ -18,5 +19,7 @@ builder.Services.AddScoped<IPostService,PostService>();
 builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o=>o.TokenValidationParameters=new TokenValidationParameters{ValidateIssuer=false,ValidateAudience=false,ValidateIssuerSigningKey=true,IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),ClockSkew=TimeSpan.Zero});
 builder.Services.AddAuthorization();
+
 var app=builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSwagger(); app.UseSwaggerUI(); app.UseCors("default"); app.UseAuthentication(); app.UseAuthorization(); app.MapControllers(); app.Run();
