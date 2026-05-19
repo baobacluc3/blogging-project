@@ -1,0 +1,21 @@
+using System.Text;
+using BloggingPlatform.Application.Interfaces;
+using BloggingPlatform.Application.Services;
+using BloggingPlatform.Infrastructure.DependencyInjection;
+using BloggingPlatform.Domain.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddCors(o=>o.AddPolicy("default",p=>p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o=>o.TokenValidationParameters=new TokenValidationParameters{ValidateIssuer=false,ValidateAudience=false,ValidateIssuerSigningKey=true,IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),ClockSkew=TimeSpan.Zero});
+builder.Services.AddAuthorization();
+var app=builder.Build();
+app.UseSwagger(); app.UseSwaggerUI(); app.UseCors("default"); app.UseAuthentication(); app.UseAuthorization(); app.MapControllers(); app.Run();
