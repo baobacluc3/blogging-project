@@ -1,7 +1,32 @@
+using System.Security.Claims;
+using BloggingPlatform.Application.DTOs.Common;
+using BloggingPlatform.Application.DTOs.Posts;
+using BloggingPlatform.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 namespace BloggingPlatform.API.Controllers;
-[ApiController,Route("api/posts")]
-public class PostsController:ControllerBase{
-[HttpGet] public IActionResult Get()=>Ok(new {success=true,message="Posts endpoint ready",data=Array.Empty<object>(),errors=Array.Empty<string>()});
+
+[ApiController, Route("api/posts")]
+public class PostsController(IPostService postService) : ControllerBase
+{
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> Get([FromQuery] PostQuery query)
+    {
+        var result = await postService.GetAsync(query);
+        return Ok(ApiResponse<PagedResult<PostResponse>>.Ok(result));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Author,Admin")]
+    public async Task<IActionResult> Create([FromBody] CreatePostRequest req)
+    {
+        var actorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(actorId) || !Guid.TryParse(actorId, out var userId))
+            return Unauthorized(ApiResponse<string>.Fail("Invalid access token"));
+
+        var created = await postService.CreateAsync(userId, req);
+        return Ok(ApiResponse<PostResponse>.Ok(created, "Post created"));
+    }
 }

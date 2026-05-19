@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o=>o.AddPolicy("default",p=>p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IPostService,PostService>();
 builder.Services.AddScoped<IPasswordHasher<User>,PasswordHasher<User>>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o=>o.TokenValidationParameters=new TokenValidationParameters{ValidateIssuer=false,ValidateAudience=false,ValidateIssuerSigningKey=true,IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),ClockSkew=TimeSpan.Zero});
 builder.Services.AddAuthorization();
